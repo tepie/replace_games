@@ -78,6 +78,7 @@ test("copies anonymous results with tries, joke odds, and a color-only grid", as
   const lines = clipboard.split("\n");
   expect(lines[0]).toBe("LAID (Medium) — 7 tries");
   expect(lines[1]).toBe("Completely unscientific likelihood of getting laid: 95% (just a joke, not a real prediction)");
+  expect(lines.at(-2)).toBe("Play Laid again: https://tepie.github.io/replace_games/laid.html");
   expect(lines.at(-1)).toBe("Suggest the next game: https://hoodsnip.com");
   expect(clipboard).not.toContain("EVER");
   expect(clipboard).not.toContain("EKER");
@@ -234,6 +235,7 @@ test("shows selectable share text when clipboard copying is unavailable", async 
   const fallback = page.getByRole("textbox", { name: "Anonymous results text" });
   await expect(fallback).toBeVisible();
   await expect(fallback).toHaveValue(/LAID \(Medium\) — 7 tries/);
+  await expect(fallback).toHaveValue(/Play Laid again: https:\/\/tepie\.github\.io\/replace_games\/laid\.html/);
   await expect(fallback).toHaveValue(/Suggest the next game: https:\/\/hoodsnip\.com/);
   await expect(page.locator("#share-status")).toHaveText("Couldn't copy automatically. Select and copy your results below.");
 });

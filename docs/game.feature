@@ -146,7 +146,8 @@ Feature: Daily word ladder
       Then the copied text includes the selected difficulty and number of tries
       And it includes the fictional likelihood score and its disclaimer
       And it includes one color-only row for each word in the path
-      And it includes the Hoodsnip game suggestion link
+      And it includes a link to play Laid again
+      And it includes the Hoodsnip game suggestion link after the Laid link
       But it does not include the words the player entered, their identity, or solve time
 
     @playwright-toggles-high-contrast-colors-in-the-legend-and-share-preview
