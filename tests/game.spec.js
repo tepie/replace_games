@@ -258,3 +258,69 @@ test("switching between Low, Medium, and High loads distinct seeds and preserves
   await expect(page.locator("#step-count")).toHaveText("1");
   await expect(page.locator("#path > li").nth(1)).toHaveAttribute("aria-label", "Word 2: EKER");
 });
+
+test("cycles cheeky title taglines after five clicks", async ({ page }) => {
+  const title = page.locator("#game-title");
+  const eyebrow = page.locator("#eyebrow");
+  await expect(eyebrow).toHaveText("Are you going to get laid tonight?");
+
+  for (let i = 0; i < 5; i += 1) {
+    await title.click();
+  }
+  await expect(eyebrow).toHaveText("Hello, ladies...");
+  await expect(title).toHaveClass(/shimmer/);
+});
+
+test("shows witty replies for playful non-moves and mood words", async ({ page }) => {
+  await fillCurrentRow(page, "help");
+  await page.getByRole("button", { name: "Make a move" }).click();
+  await expect(page.locator("#message")).toHaveText("Nice try—one letter at a time!");
+
+  await page.evaluate(() => {
+    window.WORDS.add("lain");
+    moodQuips.lain = "Now we're talking.";
+  });
+
+  for (const word of ["eker", "sker", "skel", "skil", "skid", "said", "sain", "lain"]) {
+    await fillCurrentRow(page, word);
+    await page.getByRole("button", { name: "Make a move" }).click();
+  }
+  await expect(page.locator("#message")).toHaveText("Now we're talking.");
+});
+
+test("toggles blind mode via legend or Konami code", async ({ page }) => {
+  await page.locator("#feedback-legend").dblclick();
+  await expect(page.locator("body")).toHaveClass(/blind-mode/);
+  await expect(page.locator("#message")).toHaveText("Blind Mode enabled: color hints hidden.");
+
+  const konami = [
+    "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+    "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"
+  ];
+  for (const key of konami) {
+    await page.keyboard.press(key);
+  }
+  await expect(page.locator("body")).not.toHaveClass(/blind-mode/);
+  await expect(page.locator("#message")).toHaveText("Blind Mode disabled: color hints restored.");
+});
+
+test("awards scenic route rank and late-night note on win", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-25T23:15:00"));
+
+  const detour = [
+    "eker", "ever", "eker", "ever", "eker", "ever", "eker", "ever",
+    "eker", "ever", "eker", "ever", "eker", "ever", "eker",
+    "sker", "skel", "skil", "skid", "said", "laid"
+  ];
+  for (const word of detour) {
+    await fillCurrentRow(page, word);
+    await page.getByRole("button", { name: "Make a move" }).click();
+    if (await page.getByRole("button", { name: "Use repeated word" }).isVisible()) {
+      await page.getByRole("button", { name: "Use repeated word" }).click();
+    }
+  }
+
+  await expect(page.locator("#win-card")).toBeVisible();
+  await expect(page.locator("#win-rank")).toContainText("Scenic Route Enthusiast");
+  await expect(page.locator("#win-rank")).toContainText("Late-night run. Bold strategy.");
+});

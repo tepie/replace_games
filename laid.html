@@ -132,6 +132,13 @@
       font-size: clamp(2.6rem, 12vw, 4rem);
       letter-spacing: 0.08em;
       line-height: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    h1.shimmer {
+      color: var(--accent);
+      text-shadow: 0 0 18px var(--accent-ring);
     }
 
     .subtitle {
@@ -220,6 +227,20 @@
       border-color: var(--present-border);
       background: var(--present-bg);
       color: var(--present-text);
+    }
+
+    body.blind-mode .letter.goal-correct,
+    body.blind-mode .letter-tile.goal-correct,
+    body.blind-mode .letter.goal-present,
+    body.blind-mode .letter-tile.goal-present {
+      border-color: var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    body.blind-mode .letter.goal-correct,
+    body.blind-mode .letter.goal-present {
+      background: var(--input-bg);
     }
 
     .feedback-legend {
@@ -312,6 +333,15 @@
       font-size: 1.6rem;
       font-weight: 850;
     }
+
+    .win-rank {
+      margin: 6px 0 0;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 750;
+    }
+
+    .win-rank[hidden] { display: none; }
 
     .odds-note {
       margin: 10px 0 0;
@@ -568,8 +598,8 @@
 <body>
   <main>
     <header>
-      <p class="eyebrow">Are you going to get laid tonight?</p>
-      <h1>LAID</h1>
+      <p class="eyebrow" id="eyebrow">Are you going to get laid tonight?</p>
+      <h1 id="game-title">LAID</h1>
       <p class="subtitle">Change one letter at a time to reach the goal.</p>
     </header>
 
@@ -603,6 +633,7 @@
         <div class="odds-fill" id="odds-fill"></div>
       </div>
       <p class="odds-score" id="odds-score"></p>
+      <p class="win-rank" id="win-rank" hidden></p>
       <p class="odds-note">Extra steps, undos, and every 30 seconds lower your score. This is just a joke; ask your wife, and respect her answer. Solved in <span id="solve-time"></span>.</p>
       <p class="share-preview-label">Anonymous share preview</p>
       <div class="share-preview" id="share-preview" role="img" aria-label="Color-only result preview"></div>
@@ -669,6 +700,39 @@
       }
     ];
     const difficultyLabels = { low: "Low", medium: "Medium", high: "High" };
+    const moodQuips = {
+      love: "Setting the mood...",
+      kiss: "Ooh, getting closer.",
+      date: "Dinner and a ladder?",
+      wine: "Pouring a glass...",
+      wink: "Smooth move.",
+      cozy: "Comfy and confident.",
+      rose: "Classic romance.",
+      sexy: "Val Venis approves.",
+      silk: "Velvet smooth.",
+      lure: "Quite the charm.",
+      lust: "Easy there, tiger.",
+      mood: "Definitely in the mood.",
+      glow: "Looking radiant."
+    };
+    const funnyInvalidReplies = {
+      help: "Nice try—one letter at a time!",
+      hint: "No hints here, just vibes. One letter at a time!",
+      nope: "Not with that attitude.",
+      quit: "Quitting? You're practically there!",
+      asdf: "Keyboard smash won't get you laid.",
+      xxxx: "Keep it PG-ish, pal."
+    };
+    const titleTaglines = [
+      "Are you going to get laid tonight?",
+      "Hello, ladies...",
+      "The Big Valbowski approves.",
+      "Ready to get laid?"
+    ];
+    const konamiSequence = [
+      "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+      "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"
+    ];
 
     const form = document.querySelector("#guess-form");
     const message = document.querySelector("#message");
@@ -679,6 +743,7 @@
     const celebration = document.querySelector("#celebration");
     const oddsFill = document.querySelector("#odds-fill");
     const oddsScore = document.querySelector("#odds-score");
+    const winRank = document.querySelector("#win-rank");
     const oddsMeter = document.querySelector("#odds-meter");
     const solveTime = document.querySelector("#solve-time");
     const shareButton = document.querySelector("#share-button");
@@ -688,6 +753,8 @@
     const undoButton = document.querySelector("#undo-button");
     const contrastToggle = document.querySelector("#contrast-toggle");
     const feedbackLegend = document.querySelector("#feedback-legend");
+    const eyebrow = document.querySelector("#eyebrow");
+    const gameTitle = document.querySelector("#game-title");
     const dayLabel = document.querySelector("#day-label");
     const difficultyButtons = [...document.querySelectorAll(".difficulty-button")];
     const todayPuzzles = puzzles[new Date().getDay()];
@@ -1048,12 +1115,12 @@
 
       const changedLetters = [...guess].filter((letter, index) => letter !== currentWord[index]).length;
       if (changedLetters !== 1) {
-        showMessage("Change exactly one letter from your last word.", "error");
+        showMessage(funnyInvalidReplies[guess] || "Change exactly one letter from your last word.", "error");
         return;
       }
 
       if (!window.WORDS.has(guess)) {
-        showMessage("That word isn't in this game's four-letter word list.", "error");
+        showMessage(funnyInvalidReplies[guess] || "That word isn't in this game's four-letter word list.", "error");
         return;
       }
 
@@ -1081,19 +1148,36 @@
         const detourPenalty = Math.max(0, moves - puzzle.par) * 10;
         const timePenalty = Math.floor(elapsedSeconds / 30) * 5;
         const undoPenalty = undos * 5;
-        likelihoodScore = Math.max(5, 95 - detourPenalty - timePenalty - undoPenalty);
+        const usedMoodWord = wordPath.some(word => Object.hasOwn(moodQuips, word));
+        const hasMoodBonus = undos === 0 && moves <= puzzle.par && usedMoodWord;
+        likelihoodScore = hasMoodBonus
+          ? 100
+          : Math.max(5, 95 - detourPenalty - timePenalty - undoPenalty);
+        const rankParts = [];
+        if (hasMoodBonus) rankParts.push("Smooth Operator: mood-word par bonus!");
+        else if (moves >= 20) rankParts.push("Scenic Route Enthusiast");
+        const now = new Date();
+        const hour = now.getHours();
+        const day = now.getDay();
+        if (hour >= 22 || hour < 4 || ((day === 5 || day === 6) && hour >= 20)) {
+          rankParts.push("Late-night run. Bold strategy.");
+        }
+        const rankText = rankParts.join(" · ");
         tierStates[currentDifficulty].won = true;
         tierStates[currentDifficulty].elapsedSeconds = elapsedSeconds;
+        tierStates[currentDifficulty].rankText = rankText;
         syncPuzzleHeader();
         oddsFill.style.width = `${likelihoodScore}%`;
         oddsScore.textContent = `${likelihoodScore}%`;
         oddsMeter.setAttribute("aria-valuenow", likelihoodScore);
+        winRank.textContent = rankText;
+        winRank.hidden = !rankText;
         solveTime.textContent = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
         renderSharePreview();
         winCard.hidden = false;
         showCelebration();
       } else {
-        showMessage("Nice move. What's next?", "success");
+        showMessage(moodQuips[guess] || "Nice move. What's next?", "success");
         path.querySelector(".current-row .letter").focus();
       }
     });
@@ -1169,6 +1253,8 @@
         oddsFill.style.width = `${likelihoodScore}%`;
         oddsScore.textContent = `${likelihoodScore}%`;
         oddsMeter.setAttribute("aria-valuenow", likelihoodScore);
+        winRank.textContent = state.rankText || "";
+        winRank.hidden = !state.rankText;
         solveTime.textContent = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
         renderSharePreview();
         winCard.hidden = false;
@@ -1180,6 +1266,8 @@
         oddsFill.style.width = "0";
         oddsScore.textContent = "";
         oddsMeter.setAttribute("aria-valuenow", "0");
+        winRank.textContent = "";
+        winRank.hidden = true;
         solveTime.textContent = "";
         sharePreview.replaceChildren();
         showMessage(
@@ -1221,6 +1309,8 @@
       oddsFill.style.width = "0";
       oddsScore.textContent = "";
       oddsMeter.setAttribute("aria-valuenow", "0");
+      winRank.textContent = "";
+      winRank.hidden = true;
       solveTime.textContent = "";
       sharePreview.replaceChildren();
       shareStatus.textContent = "";
@@ -1229,6 +1319,41 @@
       shareFallback.value = "";
       showMessage("");
       path.querySelector(".current-row .letter").focus();
+    });
+
+    let titleClicks = 0;
+    let taglineIndex = 0;
+    gameTitle.addEventListener("click", () => {
+      titleClicks += 1;
+      if (titleClicks < 5) return;
+      titleClicks = 0;
+      taglineIndex = (taglineIndex + 1) % titleTaglines.length;
+      eyebrow.textContent = titleTaglines[taglineIndex];
+      gameTitle.classList.toggle("shimmer", taglineIndex !== 0);
+    });
+
+    function toggleBlindMode() {
+      const enabled = document.body.classList.toggle("blind-mode");
+      showMessage(
+        enabled ? "Blind Mode enabled: color hints hidden." : "Blind Mode disabled: color hints restored.",
+        "warning"
+      );
+    }
+
+    feedbackLegend.addEventListener("dblclick", toggleBlindMode);
+
+    let konamiProgress = 0;
+    document.addEventListener("keydown", event => {
+      const expected = konamiSequence[konamiProgress];
+      if (event.key.toLowerCase() === expected.toLowerCase()) {
+        konamiProgress += 1;
+        if (konamiProgress === konamiSequence.length) {
+          konamiProgress = 0;
+          toggleBlindMode();
+        }
+      } else {
+        konamiProgress = event.key === konamiSequence[0] ? 1 : 0;
+      }
     });
 
     renderPath();

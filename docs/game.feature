@@ -163,3 +163,27 @@ Feature: Daily word ladder
       And the browser cannot copy to the clipboard
       When the player requests anonymous results
       Then the complete share text is shown in a selectable field
+
+  Rule: Easter eggs reward playful exploration without changing core rules
+
+    @playwright-cycles-cheeky-title-taglines-after-five-clicks
+    Scenario: Reveal cheeky taglines by clicking the title five times
+      When the player clicks the LAID title five times
+      Then the eyebrow tagline cycles to a cheeky Val Venis greeting
+
+    @playwright-shows-witty-replies-for-playful-non-moves-and-mood-words
+    Scenario: Show playful messages for witty non-moves and mood words
+      When the player submits a playful non-move word like help or quit
+      Then a witty error reply is shown instead of the generic message
+      When the player makes a valid move onto a mood word
+      Then a playful mood quip is shown
+
+    @playwright-toggles-blind-mode-via-legend-or-konami-code
+    Scenario: Toggle blind mode to hide color hints
+      When the player double-clicks the feedback legend or enters the Konami code
+      Then blind mode is toggled to hide or restore color hints
+
+    @playwright-awards-scenic-route-rank-and-late-night-note-on-win
+    Scenario: Show late-night and scenic-route flavor on the win card
+      Given the player solves the puzzle late at night or in twenty or more moves
+      Then the win card displays the matching playful rank or late-night note
