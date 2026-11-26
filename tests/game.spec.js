@@ -213,6 +213,31 @@ test("all daily puzzles start in WORDS and have accurate shortest-path par", asy
   }
 });
 
+test("shows selectable share text when clipboard copying is unavailable", async ({ page }) => {
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => { throw new Error("Clipboard unavailable"); } }
+    });
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: () => false
+    });
+  });
+
+  for (const word of ["eker", "sker", "skel", "skil", "skid", "said", "laid"]) {
+    await fillCurrentRow(page, word);
+    await page.getByRole("button", { name: "Make a move" }).click();
+  }
+
+  await page.getByRole("button", { name: "Copy anonymous results" }).click();
+  const fallback = page.getByRole("textbox", { name: "Anonymous results text" });
+  await expect(fallback).toBeVisible();
+  await expect(fallback).toHaveValue(/LAID \(Medium\) — 7 tries/);
+  await expect(fallback).toHaveValue(/Suggest the next game: https:\/\/hoodsnip\.com/);
+  await expect(page.locator("#share-status")).toHaveText("Couldn't copy automatically. Select and copy your results below.");
+});
+
 test("switching between Low, Medium, and High loads distinct seeds and preserves per-tier progress", async ({ page }) => {
   await expect(page.locator("#path > li").first()).toHaveAttribute("aria-label", "Word 1: EVER");
   await fillCurrentRow(page, "eker");
