@@ -189,6 +189,7 @@
 
     .message[data-state="error"] { color: #a13e33; }
     .message[data-state="success"] { color: var(--green); }
+    .message[data-state="warning"] { color: #8a6413; }
 
     .win-card {
       margin-top: 20px;
@@ -491,6 +492,7 @@
     let currentWord = puzzle.start;
     let wordPath = [puzzle.start];
     let moves = 0;
+    let pendingRepeatGuess = null;
     let fireworksTimer;
     let likelihoodScore = 0;
     let startedAt = performance.now();
@@ -548,6 +550,13 @@
     function showMessage(text, state = "") {
       message.textContent = text;
       message.dataset.state = state;
+    }
+
+    function cancelRepeatConfirmation() {
+      if (pendingRepeatGuess === null) return;
+      pendingRepeatGuess = null;
+      submitButton.textContent = "Make a move";
+      if (message.dataset.state === "warning") showMessage("");
     }
 
     function getGoalFeedback(word) {
@@ -707,6 +716,7 @@
 
     form.addEventListener("input", event => {
       if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
+      cancelRepeatConfirmation();
       const input = event.target;
       input.value = input.value.replace(/[^a-z]/gi, "").slice(-1).toLowerCase();
       const inputs = [...path.querySelectorAll(".current-row .letter")];
@@ -729,6 +739,7 @@
       const pasted = event.clipboardData.getData("text").trim().toLowerCase();
       if (!/^[a-z]{4}$/.test(pasted)) return;
       event.preventDefault();
+      cancelRepeatConfirmation();
       const inputs = [...path.querySelectorAll(".current-row .letter")];
       inputs.forEach((input, index) => {
         input.value = pasted[index];
@@ -759,6 +770,15 @@
         return;
       }
 
+      if (wordPath.includes(guess) && pendingRepeatGuess !== guess) {
+        pendingRepeatGuess = guess;
+        submitButton.textContent = "Use repeated word";
+        showMessage("You've used this word already. Submit again to use it anyway.", "warning");
+        return;
+      }
+
+      pendingRepeatGuess = null;
+      submitButton.textContent = "Make a move";
       currentWord = guess;
       wordPath.push(guess);
       moves += 1;
@@ -792,6 +812,7 @@
       currentWord = puzzle.start;
       wordPath = [puzzle.start];
       moves = 0;
+      pendingRepeatGuess = null;
       likelihoodScore = 0;
       startedAt = performance.now();
       stepCount.textContent = "0";

@@ -30,6 +30,38 @@ test("colors typed letters and rejects invalid moves without adding a row", asyn
   await expect(page.locator("#path > li").nth(1)).toHaveAttribute("aria-label", "Word 2: EKER");
 });
 
+test("warns before allowing a repeated word", async ({ page }) => {
+  await fillCurrentRow(page, "eker");
+  await page.getByRole("button", { name: "Make a move" }).click();
+
+  await fillCurrentRow(page, "ever");
+  await page.getByRole("button", { name: "Make a move" }).click();
+  await expect(page.locator("#message")).toHaveText("You've used this word already. Submit again to use it anyway.");
+  await expect(page.getByRole("button", { name: "Use repeated word" })).toBeVisible();
+  await expect(page.locator("#step-count")).toHaveText("1");
+  await expect(page.locator("#path > li")).toHaveCount(3);
+
+  await page.getByRole("button", { name: "Use repeated word" }).click();
+  await expect(page.locator("#step-count")).toHaveText("2");
+  await expect(page.locator("#path > li").nth(2)).toHaveAttribute("aria-label", "Word 3: EVER");
+});
+
+test("editing a repeated guess cancels its confirmation", async ({ page }) => {
+  await fillCurrentRow(page, "eker");
+  await page.getByRole("button", { name: "Make a move" }).click();
+
+  await fillCurrentRow(page, "ever");
+  await page.getByRole("button", { name: "Make a move" }).click();
+  await expect(page.getByRole("button", { name: "Use repeated word" })).toBeVisible();
+
+  await fillCurrentRow(page, "eker");
+  await expect(page.getByRole("button", { name: "Make a move" })).toBeVisible();
+  await expect(page.locator("#message")).toBeEmpty();
+  await page.getByRole("button", { name: "Make a move" }).click();
+  await expect(page.locator("#message")).toHaveText("Change exactly one letter from your last word.");
+  await expect(page.locator("#step-count")).toHaveText("1");
+});
+
 test("copies anonymous results with tries, joke odds, and a color-only grid", async ({ page }) => {
   for (const word of ["eker", "sker", "skel", "skil", "skid", "said", "laid"]) {
     await fillCurrentRow(page, word);
