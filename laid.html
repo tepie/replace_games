@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f2e8">
+  <title>Laid — Daily Word Ladder</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: ui-rounded, "Avenir Next", Avenir, system-ui, sans-serif;
+      color: #242d26;
+      background: #f7f2e8;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      --green: #355b42;
+      --muted: #73796f;
+      --border: #d7d2c7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 32px 18px;
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      width: min(100%, 500px);
+      padding: clamp(26px, 7vw, 48px);
+      border: 1px solid #e8e1d5;
+      border-radius: 24px;
+      background: #fffdf8;
+      box-shadow: 0 16px 55px rgb(61 54 38 / 8%);
+    }
+
+    header { text-align: center; }
+
+    .eyebrow {
+      margin: 0 0 9px;
+      color: var(--green);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 12vw, 4rem);
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .puzzle-info {
+      margin: 32px 0 0;
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-radius: 14px;
+      background: #f4f1e9;
+      font-size: 0.9rem;
+    }
+
+    .puzzle-info strong { color: var(--green); }
+
+    .goal {
+      margin: 28px 0 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    form { margin-top: 12px; }
+
+    .slots {
+      display: flex;
+      justify-content: center;
+      gap: clamp(8px, 3vw, 14px);
+    }
+
+    .letter,
+    .letter-tile {
+      width: clamp(54px, 15vw, 68px);
+      height: clamp(62px, 17vw, 76px);
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--border);
+      border-radius: 13px;
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .letter {
+      padding: 0;
+      outline: none;
+      background: #fff;
+      color: #242d26;
+      font: inherit;
+      font-size: 2rem;
+      font-weight: 800;
+      caret-color: var(--green);
+    }
+
+    .letter-tile {
+      background: #f4f1e9;
+      color: #242d26;
+    }
+
+    .letter:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgb(53 91 66 / 13%);
+    }
+
+    .letter.goal-correct,
+    .letter-tile.goal-correct {
+      border-color: #6e9a73;
+      background: #e2f1e4;
+      color: #2d6538;
+    }
+
+    .letter.goal-present,
+    .letter-tile.goal-present {
+      border-color: #d5ad4a;
+      background: #fff0c2;
+      color: #76580d;
+    }
+
+    .feedback-legend {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .legend-correct { color: #2d6538; font-weight: 750; }
+    .legend-present { color: #76580d; font-weight: 750; }
+
+    button {
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .submit {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--green);
+      color: white;
+    }
+
+    .submit:hover { background: #294a35; }
+
+    .submit:disabled,
+    .submit:disabled:hover {
+      background: var(--green);
+      cursor: default;
+    }
+
+    .message {
+      min-height: 24px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .message[data-state="error"] { color: #a13e33; }
+    .message[data-state="success"] { color: var(--green); }
+
+    .win-card {
+      margin-top: 20px;
+      padding: 18px;
+      border: 1px solid #d5e2d6;
+      border-radius: 14px;
+      background: #f0f6ef;
+      text-align: center;
+    }
+
+    .win-card[hidden] { display: none; }
+
+    .win-card h2 {
+      margin: 0;
+      color: var(--green);
+      font-size: 1.05rem;
+    }
+
+    .odds-question {
+      margin: 12px 0;
+      font-weight: 750;
+    }
+
+    .odds-meter {
+      height: 18px;
+      overflow: hidden;
+      border: 1px solid #c9d8ca;
+      border-radius: 999px;
+      background: #fffdf8;
+    }
+
+    .odds-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #d5b95e, #73975e, #355b42);
+      transition: width 500ms ease-out;
+    }
+
+    .odds-score {
+      margin: 8px 0 0;
+      color: var(--green);
+      font-size: 1.6rem;
+      font-weight: 850;
+    }
+
+    .odds-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .share-button {
+      min-height: 40px;
+      margin-top: 14px;
+      padding: 0 16px;
+      border: 1px solid #b7c5b7;
+      background: #fffdf8;
+      color: var(--green);
+    }
+
+    .share-button:hover { background: #e6efe7; }
+
+    .share-status {
+      min-height: 1.2em;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .share-status[data-state="error"] { color: #a13e33; }
+
+    .share-preview-label {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .share-preview {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .share-row {
+      display: flex;
+      gap: 5px;
+    }
+
+    .share-tile {
+      width: 22px;
+      height: 22px;
+      display: block;
+      border-radius: 4px;
+      background: #d7d2c7;
+    }
+
+    .share-tile.goal-correct { background: #6e9a73; }
+    .share-tile.goal-present { background: #d5ad4a; }
+
+    .path-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #ece7de;
+    }
+
+    .path-heading {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .path {
+      margin: 12px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      list-style: none;
+    }
+
+    .path li {
+      padding: 0;
+    }
+
+    .restart {
+      width: 100%;
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #485047;
+    }
+
+    .restart:hover { background: #f4f1e9; }
+
+    .instructions {
+      margin: 25px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      button { transition: background-color 140ms ease; }
+    }
+
+    .celebration {
+      position: fixed;
+      z-index: 5;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .celebration[hidden] { display: none; }
+
+    .confetti-piece {
+      position: absolute;
+      top: -20px;
+      left: var(--x);
+      width: 10px;
+      height: 16px;
+      border-radius: 2px;
+      background: var(--color);
+      opacity: 0.95;
+      animation: confetti-fall 2.8s cubic-bezier(0.15, 0.55, 0.3, 1) var(--delay) forwards;
+    }
+
+    .firework-burst {
+      position: absolute;
+      top: var(--y);
+      left: var(--x);
+      width: 0;
+      height: 0;
+    }
+
+    .firework-spark {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color);
+      opacity: 0;
+      animation: firework-burst 900ms ease-out var(--delay) forwards;
+    }
+
+    @keyframes confetti-fall {
+      to {
+        opacity: 0;
+        transform: translate3d(var(--drift), 115vh, 0) rotate(700deg);
+      }
+    }
+
+    @keyframes firework-burst {
+      15% { opacity: 1; }
+      to {
+        opacity: 0;
+        transform: translate(var(--dx), var(--dy)) scale(0.15);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .confetti-piece,
+      .firework-spark { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Are you going to get laid tonight?</p>
+      <h1>LAID</h1>
+      <p class="subtitle">Change one letter at a time to reach the goal.</p>
+    </header>
+
+    <section class="puzzle-info" aria-label="Today's puzzle">
+      <span id="day-label"></span>
+      <span>Steps: <strong id="step-count">0</strong></span>
+    </section>
+
+    <p class="goal">Today's start</p>
+
+    <section class="path-section" aria-label="Your word ladder">
+      <h2 class="path-heading">Your ladder</h2>
+      <p class="feedback-legend"><span class="legend-correct">Green</span>: correct spot · <span class="legend-present">Gold</span>: in LAID, different spot</p>
+      <form id="guess-form">
+        <ol class="path" id="path" aria-label="Word ladder"></ol>
+        <button class="submit" id="submit-button" type="submit">Make a move</button>
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="win-card" id="win-card" aria-labelledby="win-title" hidden>
+      <h2 id="win-title">Puzzle solved. Here's your score.</h2>
+      <p class="odds-question">Completely unscientific likelihood of getting laid:</p>
+      <div class="odds-meter" id="odds-meter" role="meter" aria-label="Fictional likelihood estimate" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="odds-fill" id="odds-fill"></div>
+      </div>
+      <p class="odds-score" id="odds-score"></p>
+      <p class="odds-note">Extra steps and every 30 seconds lower your score. This is just a joke; ask your wife, and respect her answer. Solved in <span id="solve-time"></span>.</p>
+      <p class="share-preview-label">Color-only share preview</p>
+      <div class="share-preview" id="share-preview" role="img" aria-label="Color-only result preview"></div>
+      <button class="share-button" id="share-button" type="button">Copy anonymous grid</button>
+      <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+      <p class="odds-note">Only colored boxes are copied—no words, name, score, or time.</p>
+    </section>
+
+    <button class="restart" id="restart-button" type="button">Restart today's puzzle</button>
+    <p class="instructions">Each move must be a real four-letter word that differs from the last by exactly one letter. Find the shortest path you can.</p>
+  </main>
+
+  <div class="celebration" id="celebration" aria-hidden="true" hidden></div>
+
+  <script src="words.js"></script>
+  <script>
+    const puzzles = [
+      { day: "Sunday", start: "into", par: 11, difficulty: "Expert" },
+      { day: "Monday", start: "best", par: 5, difficulty: "Warm-up" },
+      { day: "Tuesday", start: "free", par: 6, difficulty: "Steady" },
+      { day: "Wednesday", start: "ever", par: 7, difficulty: "Challenging" },
+      { day: "Thursday", start: "open", par: 8, difficulty: "Hard" },
+      { day: "Friday", start: "inch", par: 9, difficulty: "Very hard" },
+      { day: "Saturday", start: "idle", par: 10, difficulty: "Master" }
+    ];
+
+    const form = document.querySelector("#guess-form");
+    const message = document.querySelector("#message");
+    const path = document.querySelector("#path");
+    const stepCount = document.querySelector("#step-count");
+    const submitButton = document.querySelector("#submit-button");
+    const winCard = document.querySelector("#win-card");
+    const celebration = document.querySelector("#celebration");
+    const oddsFill = document.querySelector("#odds-fill");
+    const oddsScore = document.querySelector("#odds-score");
+    const oddsMeter = document.querySelector("#odds-meter");
+    const solveTime = document.querySelector("#solve-time");
+    const shareButton = document.querySelector("#share-button");
+    const shareStatus = document.querySelector("#share-status");
+    const sharePreview = document.querySelector("#share-preview");
+    const puzzle = puzzles[new Date().getDay()];
+    const goalWord = "laid";
+    let currentWord = puzzle.start;
+    let wordPath = [puzzle.start];
+    let moves = 0;
+    let fireworksTimer;
+    let startedAt = performance.now();
+
+    document.querySelector("#day-label").innerHTML =
+      `${puzzle.day} <span aria-hidden="true">·</span> <strong>${puzzle.difficulty}</strong>`;
+
+    function renderPath() {
+      const rows = wordPath.map((word, wordIndex) => {
+        const item = document.createElement("li");
+        item.className = "word-row";
+        item.setAttribute("aria-label", `Word ${wordIndex + 1}: ${word.toUpperCase()}`);
+
+        const tiles = document.createElement("div");
+        tiles.className = "slots";
+        for (const letter of word) {
+          const tile = document.createElement("span");
+          tile.className = "letter-tile";
+          tile.textContent = letter;
+          tile.setAttribute("aria-hidden", "true");
+          tiles.append(tile);
+        }
+        applyGoalFeedback([...tiles.children], word);
+        item.append(tiles);
+        return item;
+      });
+
+      if (currentWord !== goalWord) {
+        const item = document.createElement("li");
+        item.className = "word-row current-row";
+        item.setAttribute("aria-label", "Enter your next word");
+        const slots = document.createElement("div");
+        slots.className = "slots";
+        slots.setAttribute("role", "group");
+        slots.setAttribute("aria-label", "Enter your next four-letter word");
+
+        for (let index = 0; index < 4; index += 1) {
+          const input = document.createElement("input");
+          input.className = "letter";
+          input.setAttribute("aria-label", `Letter ${index + 1} of 4 for next word`);
+          input.setAttribute("maxlength", "1");
+          input.setAttribute("autocomplete", "off");
+          input.setAttribute("autocapitalize", "off");
+          input.setAttribute("spellcheck", "false");
+          slots.append(input);
+        }
+
+        item.append(slots);
+        rows.push(item);
+      }
+
+      path.replaceChildren(...rows);
+    }
+
+    function showMessage(text, state = "") {
+      message.textContent = text;
+      message.dataset.state = state;
+    }
+
+    function getGoalFeedback(word) {
+      const feedback = Array.from(word, () => "");
+      const remaining = [...goalWord];
+
+      [...word].forEach((letter, index) => {
+        if (letter && letter === goalWord[index]) {
+          feedback[index] = "goal-correct";
+          remaining[index] = "";
+        }
+      });
+
+      [...word].forEach((letter, index) => {
+        if (!letter || feedback[index]) return;
+        const targetIndex = remaining.indexOf(letter);
+        if (targetIndex !== -1) {
+          feedback[index] = "goal-present";
+          remaining[targetIndex] = "";
+        }
+      });
+
+      return feedback;
+    }
+
+    function applyGoalFeedback(elements, word) {
+      getGoalFeedback(word).forEach((feedbackClass, index) => {
+        elements[index].classList.remove("goal-correct", "goal-present");
+        if (feedbackClass) elements[index].classList.add(feedbackClass);
+      });
+    }
+
+    function copyWithFallback(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      try {
+        document.body.append(textarea);
+        textarea.select();
+        return document.execCommand("copy");
+      } finally {
+        textarea.remove();
+      }
+    }
+
+    async function copyResult() {
+      const result = getShareRows().map(row => row.join(" ")).join("\n");
+      let copied = false;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(result);
+          copied = true;
+        }
+      } catch {
+        copied = false;
+      }
+
+      if (!copied) {
+        try {
+          copied = copyWithFallback(result);
+        } catch {
+          copied = false;
+        }
+      }
+
+      shareStatus.dataset.state = copied ? "success" : "error";
+      shareStatus.textContent = copied
+        ? "Copied the color-only grid."
+        : "Couldn't copy automatically. Try selecting the color-only preview and copying it.";
+    }
+
+    function getShareRows() {
+      return wordPath.map(word => getGoalFeedback(word).map(feedbackClass => {
+        if (feedbackClass === "goal-correct") return "🟩";
+        if (feedbackClass === "goal-present") return "🟨";
+        return "⬜";
+      }));
+    }
+
+    function renderSharePreview() {
+      const rows = getShareRows().map((colors, index) => {
+        const row = document.createElement("div");
+        row.className = "share-row";
+        row.setAttribute("aria-label", `Color result row ${index + 1}`);
+
+        colors.forEach(color => {
+          const tile = document.createElement("span");
+          tile.className = "share-tile";
+          tile.setAttribute("aria-hidden", "true");
+          if (color === "🟩") tile.classList.add("goal-correct");
+          if (color === "🟨") tile.classList.add("goal-present");
+          row.append(tile);
+        });
+
+        return row;
+      });
+
+      sharePreview.replaceChildren(...rows);
+    }
+
+    function showCelebration() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const colors = ["#355b42", "#e7a83e", "#d36a57", "#7d9dc3", "#9d75b5"];
+      celebration.replaceChildren();
+      celebration.hidden = false;
+
+      for (let index = 0; index < 70; index += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.setProperty("--x", `${Math.random() * 100}%`);
+        piece.style.setProperty("--drift", `${Math.random() * 180 - 90}px`);
+        piece.style.setProperty("--delay", `${Math.random() * 700}ms`);
+        piece.style.setProperty("--color", colors[index % colors.length]);
+        celebration.append(piece);
+      }
+
+      fireworksTimer = window.setTimeout(() => {
+        for (const [x, y] of [[22, 32], [50, 25], [78, 35]]) {
+          const burst = document.createElement("div");
+          burst.className = "firework-burst";
+          burst.style.setProperty("--x", `${x}%`);
+          burst.style.setProperty("--y", `${y}%`);
+
+          for (let index = 0; index < 18; index += 1) {
+            const angle = (Math.PI * 2 * index) / 18;
+            const distance = 55 + Math.random() * 55;
+            const spark = document.createElement("span");
+            spark.className = "firework-spark";
+            spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+            spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+            spark.style.setProperty("--delay", `${Math.random() * 120}ms`);
+            spark.style.setProperty("--color", colors[index % colors.length]);
+            burst.append(spark);
+          }
+
+          celebration.append(burst);
+        }
+      }, 1100);
+    }
+
+    form.addEventListener("input", event => {
+      if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
+      const input = event.target;
+      input.value = input.value.replace(/[^a-z]/gi, "").slice(-1).toLowerCase();
+      const inputs = [...path.querySelectorAll(".current-row .letter")];
+      const index = inputs.indexOf(input);
+      applyGoalFeedback(inputs, inputs.map(letterInput => letterInput.value).join(""));
+      if (input.value && index < inputs.length - 1) inputs[index + 1].focus();
+    });
+
+    form.addEventListener("keydown", event => {
+      if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
+      const inputs = [...path.querySelectorAll(".current-row .letter")];
+      const index = inputs.indexOf(event.target);
+      if (event.key === "Backspace" && !event.target.value && index > 0) {
+        inputs[index - 1].focus();
+      }
+    });
+
+    form.addEventListener("paste", event => {
+      if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
+      const pasted = event.clipboardData.getData("text").trim().toLowerCase();
+      if (!/^[a-z]{4}$/.test(pasted)) return;
+      event.preventDefault();
+      const inputs = [...path.querySelectorAll(".current-row .letter")];
+      inputs.forEach((input, index) => {
+        input.value = pasted[index];
+      });
+      applyGoalFeedback(inputs, pasted);
+      inputs[inputs.length - 1].focus();
+    });
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      if (currentWord === goalWord) return;
+
+      const inputs = [...path.querySelectorAll(".current-row .letter")];
+      const guess = inputs.map(input => input.value).join("");
+      if (!/^[a-z]{4}$/.test(guess)) {
+        showMessage("Fill all four letter slots first.", "error");
+        return;
+      }
+
+      const changedLetters = [...guess].filter((letter, index) => letter !== currentWord[index]).length;
+      if (changedLetters !== 1) {
+        showMessage("Change exactly one letter from your last word.", "error");
+        return;
+      }
+
+      if (!window.WORDS.has(guess)) {
+        showMessage("That word isn't in this game's four-letter word list.", "error");
+        return;
+      }
+
+      currentWord = guess;
+      wordPath.push(guess);
+      moves += 1;
+      stepCount.textContent = moves;
+      renderPath();
+
+      if (currentWord === goalWord) {
+        submitButton.textContent = "You won!";
+        submitButton.disabled = true;
+        showMessage(`You reached LAID in ${moves} ${moves === 1 ? "step" : "steps"}!`, "success");
+        const elapsedSeconds = Math.floor((performance.now() - startedAt) / 1000);
+        const detourPenalty = Math.max(0, moves - puzzle.par) * 10;
+        const timePenalty = Math.floor(elapsedSeconds / 30) * 5;
+        const likelihood = Math.max(5, 95 - detourPenalty - timePenalty);
+        oddsFill.style.width = `${likelihood}%`;
+        oddsScore.textContent = `${likelihood}%`;
+        oddsMeter.setAttribute("aria-valuenow", likelihood);
+        solveTime.textContent = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
+        renderSharePreview();
+        winCard.hidden = false;
+        showCelebration();
+      } else {
+        showMessage("Nice move. What's next?", "success");
+        path.querySelector(".current-row .letter").focus();
+      }
+    });
+
+    shareButton.addEventListener("click", copyResult);
+
+    document.querySelector("#restart-button").addEventListener("click", () => {
+      currentWord = puzzle.start;
+      wordPath = [puzzle.start];
+      moves = 0;
+      startedAt = performance.now();
+      stepCount.textContent = "0";
+      renderPath();
+      window.clearTimeout(fireworksTimer);
+      celebration.hidden = true;
+      celebration.replaceChildren();
+      submitButton.disabled = false;
+      submitButton.textContent = "Make a move";
+      winCard.hidden = true;
+      oddsFill.style.width = "0";
+      oddsScore.textContent = "";
+      oddsMeter.setAttribute("aria-valuenow", "0");
+      solveTime.textContent = "";
+      sharePreview.replaceChildren();
+      shareStatus.textContent = "";
+      shareStatus.dataset.state = "";
+      showMessage("");
+      path.querySelector(".current-row .letter").focus();
+    });
+
+    renderPath();
+    path.querySelector(".current-row .letter").focus();
+  </script>
+</body>
+</html>
