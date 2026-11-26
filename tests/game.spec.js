@@ -39,7 +39,7 @@ test("copies anonymous results with tries, joke odds, and a color-only grid", as
   await expect(page.getByRole("button", { name: "You won!" })).toBeDisabled();
   await expect(page.locator("#win-card")).toBeVisible();
   await expect(page.locator(".share-preview .share-row")).toHaveCount(8);
-  await expect(page.getByRole("link", { name: "Hoodsnip.com" })).toHaveAttribute("href", "https://hoodsnip.com");
+  await expect(page.getByRole("link", { name: "Explore more games at Hoodsnip.com" })).toHaveAttribute("href", "https://hoodsnip.com");
 
   await page.getByRole("button", { name: "Copy anonymous results" }).click();
   const clipboard = await page.evaluate(() => navigator.clipboard.readText());
