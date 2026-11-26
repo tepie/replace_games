@@ -344,6 +344,18 @@
       text-align: center;
     }
 
+    .next-game {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .next-game a {
+      color: var(--green);
+      font-weight: 750;
+    }
+
     @media (prefers-reduced-motion: no-preference) {
       button { transition: background-color 140ms ease; }
     }
@@ -442,15 +454,16 @@
       </div>
       <p class="odds-score" id="odds-score"></p>
       <p class="odds-note">Extra steps and every 30 seconds lower your score. This is just a joke; ask your wife, and respect her answer. Solved in <span id="solve-time"></span>.</p>
-      <p class="share-preview-label">Color-only share preview</p>
+      <p class="share-preview-label">Anonymous share preview</p>
       <div class="share-preview" id="share-preview" role="img" aria-label="Color-only result preview"></div>
-      <button class="share-button" id="share-button" type="button">Copy anonymous grid</button>
+      <button class="share-button" id="share-button" type="button">Copy anonymous results</button>
       <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
-      <p class="odds-note">Only colored boxes are copied—no words, name, score, or time.</p>
+      <p class="odds-note">Shares your tries, joke odds, and colored boxes—never your words, name, or solve time.</p>
     </section>
 
     <button class="restart" id="restart-button" type="button">Restart today's puzzle</button>
     <p class="instructions">Each move must be a real four-letter word that differs from the last by exactly one letter. Find the shortest path you can.</p>
+    <p class="next-game">Suggest your next game at <a href="https://hoodsnip.com" target="_blank" rel="noopener noreferrer">Hoodsnip.com</a>.</p>
   </main>
 
   <div class="celebration" id="celebration" aria-hidden="true" hidden></div>
@@ -487,6 +500,7 @@
     let wordPath = [puzzle.start];
     let moves = 0;
     let fireworksTimer;
+    let likelihoodScore = 0;
     let startedAt = performance.now();
 
     document.querySelector("#day-label").innerHTML =
@@ -591,7 +605,7 @@
     }
 
     async function copyResult() {
-      const result = getShareRows().map(row => row.join(" ")).join("\n");
+      const result = getShareText();
       let copied = false;
 
       try {
@@ -613,8 +627,20 @@
 
       shareStatus.dataset.state = copied ? "success" : "error";
       shareStatus.textContent = copied
-        ? "Copied the color-only grid."
-        : "Couldn't copy automatically. Try selecting the color-only preview and copying it.";
+        ? "Copied your anonymous results."
+        : "Couldn't copy automatically. Please try copying again.";
+    }
+
+    function getShareText() {
+      const grid = getShareRows().map(row => row.join(" ")).join("\n");
+      return [
+        `LAID — ${moves} ${moves === 1 ? "try" : "tries"}`,
+        `Completely unscientific likelihood of getting laid: ${likelihoodScore}% (just a joke, not a real prediction)`,
+        "",
+        grid,
+        "",
+        "Suggest the next game: https://hoodsnip.com"
+      ].join("\n");
     }
 
     function getShareRows() {
@@ -754,10 +780,10 @@
         const elapsedSeconds = Math.floor((performance.now() - startedAt) / 1000);
         const detourPenalty = Math.max(0, moves - puzzle.par) * 10;
         const timePenalty = Math.floor(elapsedSeconds / 30) * 5;
-        const likelihood = Math.max(5, 95 - detourPenalty - timePenalty);
-        oddsFill.style.width = `${likelihood}%`;
-        oddsScore.textContent = `${likelihood}%`;
-        oddsMeter.setAttribute("aria-valuenow", likelihood);
+        likelihoodScore = Math.max(5, 95 - detourPenalty - timePenalty);
+        oddsFill.style.width = `${likelihoodScore}%`;
+        oddsScore.textContent = `${likelihoodScore}%`;
+        oddsMeter.setAttribute("aria-valuenow", likelihoodScore);
         solveTime.textContent = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
         renderSharePreview();
         winCard.hidden = false;
@@ -774,6 +800,7 @@
       currentWord = puzzle.start;
       wordPath = [puzzle.start];
       moves = 0;
+      likelihoodScore = 0;
       startedAt = performance.now();
       stepCount.textContent = "0";
       renderPath();
