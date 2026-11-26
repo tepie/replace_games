@@ -3,20 +3,97 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f2e8">
-  <title>Laid — Daily Word Ladder</title>
+  <meta name="theme-color" content="#f8f2f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f0712" media="(prefers-color-scheme: dark)">
+  <title>Laid — Daily Word Game</title>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: light dark;
       font-family: ui-rounded, "Avenir Next", Avenir, system-ui, sans-serif;
-      color: #242d26;
-      background: #f7f2e8;
       font-synthesis: none;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
-      --green: #355b42;
-      --muted: #73796f;
-      --border: #d7d2c7;
+      --bg: #f5edf7;
+      --card-bg: #fcf9fd;
+      --card-border: #e3d2e8;
+      --card-shadow: rgb(46 8 56 / 12%);
+      --surface: #efe3f3;
+      --input-bg: #ffffff;
+      --text: #221326;
+      --button-text: #462b4f;
+      --accent: #2e0838;
+      --accent-hover: #1e0426;
+      --accent-ring: rgb(46 8 56 / 24%);
+      --muted: #6e5975;
+      --border: #d2bed9;
+      --correct-border: #4a1259;
+      --correct-bg: #e7d1ef;
+      --correct-text: #2e0838;
+      --present-border: #d5ad4a;
+      --present-bg: #fff0c2;
+      --present-text: #76580d;
+      --error: #a13e33;
+      --warning: #8a6413;
+      --win-bg: #f3e8f7;
+      --win-border: #d9bfe3;
+      --meter-border: #ccaad8;
+      --share-border: #bc93cb;
+      --share-hover: #ead7f1;
+      --path-divider: #e8d8ee;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0712;
+        --card-bg: #170c1c;
+        --card-border: #2c1734;
+        --card-shadow: rgb(0 0 0 / 55%);
+        --surface: #221229;
+        --input-bg: #120916;
+        --text: #f3eaf7;
+        --button-text: #dcc9e3;
+        --accent: #6c2482;
+        --accent-hover: #531866;
+        --accent-ring: rgb(108 36 130 / 32%);
+        --muted: #a68fb0;
+        --border: #3a1f44;
+        --correct-border: #6c2482;
+        --correct-bg: #291033;
+        --correct-text: #e2c2f0;
+        --present-border: #c59b38;
+        --present-bg: #3e3318;
+        --present-text: #f3cf6b;
+        --error: #e07a6e;
+        --warning: #e5b75c;
+        --win-bg: #1d0d24;
+        --win-border: #3a1b47;
+        --meter-border: #442152;
+        --share-border: #522863;
+        --share-hover: #2c1436;
+        --path-divider: #291530;
+      }
+    }
+
+    body.high-contrast {
+      --correct-border: #d95f02;
+      --correct-bg: #fff0e5;
+      --correct-text: #993f00;
+      --present-border: #2b7bba;
+      --present-bg: #e6f2fc;
+      --present-text: #144d7a;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body.high-contrast {
+        --correct-border: #f5793a;
+        --correct-bg: #452412;
+        --correct-text: #ffb38a;
+        --present-border: #5da9e9;
+        --present-bg: #152d44;
+        --present-text: #9fd0fa;
+      }
     }
 
     * { box-sizing: border-box; }
@@ -33,17 +110,17 @@
     main {
       width: min(100%, 500px);
       padding: clamp(26px, 7vw, 48px);
-      border: 1px solid #e8e1d5;
+      border: 1px solid var(--card-border);
       border-radius: 24px;
-      background: #fffdf8;
-      box-shadow: 0 16px 55px rgb(61 54 38 / 8%);
+      background: var(--card-bg);
+      box-shadow: 0 16px 55px var(--card-shadow);
     }
 
     header { text-align: center; }
 
     .eyebrow {
       margin: 0 0 9px;
-      color: var(--green);
+      color: var(--accent);
       font-size: 0.75rem;
       font-weight: 800;
       letter-spacing: 0.16em;
@@ -71,11 +148,11 @@
       justify-content: space-between;
       gap: 12px;
       border-radius: 14px;
-      background: #f4f1e9;
+      background: var(--surface);
       font-size: 0.9rem;
     }
 
-    .puzzle-info strong { color: var(--green); }
+    .puzzle-info strong { color: var(--accent); }
 
     .goal {
       margin: 28px 0 6px;
@@ -113,36 +190,36 @@
     .letter {
       padding: 0;
       outline: none;
-      background: #fff;
-      color: #242d26;
+      background: var(--input-bg);
+      color: var(--text);
       font: inherit;
       font-size: 2rem;
       font-weight: 800;
-      caret-color: var(--green);
+      caret-color: var(--accent);
     }
 
     .letter-tile {
-      background: #f4f1e9;
-      color: #242d26;
+      background: var(--surface);
+      color: var(--text);
     }
 
     .letter:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgb(53 91 66 / 13%);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
     }
 
     .letter.goal-correct,
     .letter-tile.goal-correct {
-      border-color: #6e9a73;
-      background: #e2f1e4;
-      color: #2d6538;
+      border-color: var(--correct-border);
+      background: var(--correct-bg);
+      color: var(--correct-text);
     }
 
     .letter.goal-present,
     .letter-tile.goal-present {
-      border-color: #d5ad4a;
-      background: #fff0c2;
-      color: #76580d;
+      border-color: var(--present-border);
+      background: var(--present-bg);
+      color: var(--present-text);
     }
 
     .feedback-legend {
@@ -152,8 +229,8 @@
       text-align: center;
     }
 
-    .legend-correct { color: #2d6538; font-weight: 750; }
-    .legend-present { color: #76580d; font-weight: 750; }
+    .legend-correct { color: var(--correct-text); font-weight: 750; }
+    .legend-present { color: var(--present-text); font-weight: 750; }
 
     button {
       min-height: 48px;
@@ -167,15 +244,15 @@
     .submit {
       width: 100%;
       margin-top: 16px;
-      background: var(--green);
+      background: var(--accent);
       color: white;
     }
 
-    .submit:hover { background: #294a35; }
+    .submit:hover { background: var(--accent-hover); }
 
     .submit:disabled,
     .submit:disabled:hover {
-      background: var(--green);
+      background: var(--accent);
       cursor: default;
     }
 
@@ -187,16 +264,16 @@
       text-align: center;
     }
 
-    .message[data-state="error"] { color: #a13e33; }
-    .message[data-state="success"] { color: var(--green); }
-    .message[data-state="warning"] { color: #8a6413; }
+    .message[data-state="error"] { color: var(--error); }
+    .message[data-state="success"] { color: var(--accent); }
+    .message[data-state="warning"] { color: var(--warning); }
 
     .win-card {
       margin-top: 20px;
       padding: 18px;
-      border: 1px solid #d5e2d6;
+      border: 1px solid var(--win-border);
       border-radius: 14px;
-      background: #f0f6ef;
+      background: var(--win-bg);
       text-align: center;
     }
 
@@ -204,7 +281,7 @@
 
     .win-card h2 {
       margin: 0;
-      color: var(--green);
+      color: var(--accent);
       font-size: 1.05rem;
     }
 
@@ -216,22 +293,22 @@
     .odds-meter {
       height: 18px;
       overflow: hidden;
-      border: 1px solid #c9d8ca;
+      border: 1px solid var(--meter-border);
       border-radius: 999px;
-      background: #fffdf8;
+      background: var(--card-bg);
     }
 
     .odds-fill {
       width: 0;
       height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, #d5b95e, #73975e, #355b42);
+      background: linear-gradient(90deg, #d5b95e, #7b2163, #2e0838);
       transition: width 500ms ease-out;
     }
 
     .odds-score {
       margin: 8px 0 0;
-      color: var(--green);
+      color: var(--accent);
       font-size: 1.6rem;
       font-weight: 850;
     }
@@ -247,12 +324,12 @@
       min-height: 40px;
       margin-top: 14px;
       padding: 0 16px;
-      border: 1px solid #b7c5b7;
-      background: #fffdf8;
-      color: var(--green);
+      border: 1px solid var(--share-border);
+      background: var(--card-bg);
+      color: var(--accent);
     }
 
-    .share-button:hover { background: #e6efe7; }
+    .share-button:hover { background: var(--share-hover); }
 
     .share-status {
       min-height: 1.2em;
@@ -261,7 +338,23 @@
       font-size: 0.78rem;
     }
 
-    .share-status[data-state="error"] { color: #a13e33; }
+    .share-status[data-state="error"] { color: var(--error); }
+
+    .share-fallback {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--meter-border);
+      border-radius: 10px;
+      background: var(--card-bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      resize: none;
+    }
+
+    .share-fallback[hidden] { display: none; }
 
     .share-preview-label {
       margin: 14px 0 0;
@@ -290,16 +383,16 @@
       height: 22px;
       display: block;
       border-radius: 4px;
-      background: #d7d2c7;
+      background: var(--border);
     }
 
-    .share-tile.goal-correct { background: #6e9a73; }
-    .share-tile.goal-present { background: #d5ad4a; }
+    .share-tile.goal-correct { background: var(--correct-border); }
+    .share-tile.goal-present { background: var(--present-border); }
 
     .path-section {
       margin-top: 24px;
       padding-top: 20px;
-      border-top: 1px solid #ece7de;
+      border-top: 1px solid var(--path-divider);
     }
 
     .path-heading {
@@ -327,15 +420,72 @@
       padding: 0;
     }
 
-    .restart {
-      width: 100%;
+    .actions {
       margin-top: 18px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: #485047;
+      display: flex;
+      gap: 10px;
     }
 
-    .restart:hover { background: #f4f1e9; }
+    .difficulty-group {
+      margin-top: 14px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .difficulty-button {
+      flex: 1 1 0;
+      min-height: 40px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--button-text);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .difficulty-button:hover { background: var(--surface); }
+
+    .difficulty-button[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .secondary-button {
+      flex: 1 1 0;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--button-text);
+    }
+
+    .secondary-button:hover:not(:disabled) { background: var(--surface); }
+
+    .secondary-button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .contrast-toggle {
+      display: block;
+      min-height: 36px;
+      margin: 12px auto 0;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .contrast-toggle:hover { background: var(--surface); color: var(--text); }
+
+    .contrast-toggle[aria-pressed="true"] {
+      border-color: var(--correct-border);
+      color: var(--correct-text);
+      background: var(--correct-bg);
+    }
 
     .instructions {
       margin: 25px 0 0;
@@ -346,7 +496,7 @@
     }
 
     .instructions a {
-      color: var(--green);
+      color: var(--accent);
       font-weight: 750;
     }
 
@@ -428,11 +578,17 @@
       <span>Steps: <strong id="step-count">0</strong></span>
     </section>
 
+    <div class="difficulty-group" role="group" aria-label="Difficulty level">
+      <button class="difficulty-button" type="button" data-difficulty="low" aria-pressed="false">Low</button>
+      <button class="difficulty-button" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+      <button class="difficulty-button" type="button" data-difficulty="high" aria-pressed="false">High</button>
+    </div>
+
     <p class="goal">Today's start</p>
 
     <section class="path-section" aria-label="Your word ladder">
       <h2 class="path-heading">Your ladder</h2>
-      <p class="feedback-legend"><span class="legend-correct">Green</span>: correct spot · <span class="legend-present">Gold</span>: in LAID, different spot</p>
+      <p class="feedback-legend" id="feedback-legend"><span class="legend-correct">Purple</span>: correct spot · <span class="legend-present">Gold</span>: in LAID, different spot</p>
       <form id="guess-form">
         <ol class="path" id="path" aria-label="Word ladder"></ol>
         <button class="submit" id="submit-button" type="submit">Make a move</button>
@@ -447,15 +603,20 @@
         <div class="odds-fill" id="odds-fill"></div>
       </div>
       <p class="odds-score" id="odds-score"></p>
-      <p class="odds-note">Extra steps and every 30 seconds lower your score. This is just a joke; ask your wife, and respect her answer. Solved in <span id="solve-time"></span>.</p>
+      <p class="odds-note">Extra steps, undos, and every 30 seconds lower your score. This is just a joke; ask your wife, and respect her answer. Solved in <span id="solve-time"></span>.</p>
       <p class="share-preview-label">Anonymous share preview</p>
       <div class="share-preview" id="share-preview" role="img" aria-label="Color-only result preview"></div>
       <button class="share-button" id="share-button" type="button">Copy anonymous results</button>
       <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+      <textarea class="share-fallback" id="share-fallback" rows="6" readonly aria-label="Anonymous results text" hidden></textarea>
       <p class="odds-note">Shares your tries, joke odds, and colored boxes—never your words, name, or solve time.</p>
     </section>
 
-    <button class="restart" id="restart-button" type="button">Restart today's puzzle</button>
+    <div class="actions">
+      <button class="secondary-button" id="undo-button" type="button" disabled>Undo last move</button>
+      <button class="secondary-button" id="restart-button" type="button">Restart today's puzzle</button>
+    </div>
+    <button class="contrast-toggle" id="contrast-toggle" type="button" aria-pressed="false">High-contrast colors</button>
     <p class="instructions">Want to play another game? <a href="https://hoodsnip.com" target="_blank" rel="noopener noreferrer">Explore more games at Hoodsnip.com</a>.</p>
   </main>
 
@@ -464,14 +625,50 @@
   <script src="words.js"></script>
   <script>
     const puzzles = [
-      { day: "Sunday", start: "into", par: 11, difficulty: "Expert" },
-      { day: "Monday", start: "best", par: 5, difficulty: "Warm-up" },
-      { day: "Tuesday", start: "free", par: 6, difficulty: "Steady" },
-      { day: "Wednesday", start: "ever", par: 7, difficulty: "Challenging" },
-      { day: "Thursday", start: "open", par: 8, difficulty: "Hard" },
-      { day: "Friday", start: "inch", par: 9, difficulty: "Very hard" },
-      { day: "Saturday", start: "idle", par: 10, difficulty: "Master" }
+      {
+        day: "Sunday",
+        low: { start: "whip", par: 4 },
+        medium: { start: "oral", par: 7 },
+        high: { start: "into", par: 11 }
+      },
+      {
+        day: "Monday",
+        low: { start: "best", par: 5 },
+        medium: { start: "free", par: 6 },
+        high: { start: "idly", par: 9 }
+      },
+      {
+        day: "Tuesday",
+        low: { start: "chat", par: 4 },
+        medium: { start: "plan", par: 6 },
+        high: { start: "undo", par: 10 }
+      },
+      {
+        day: "Wednesday",
+        low: { start: "clam", par: 5 },
+        medium: { start: "ever", par: 7 },
+        high: { start: "inch", par: 9 }
+      },
+      {
+        day: "Thursday",
+        low: { start: "whim", par: 4 },
+        medium: { start: "open", par: 8 },
+        high: { start: "opus", par: 10 }
+      },
+      {
+        day: "Friday",
+        low: { start: "what", par: 5 },
+        medium: { start: "oval", par: 8 },
+        high: { start: "army", par: 9 }
+      },
+      {
+        day: "Saturday",
+        low: { start: "coil", par: 4 },
+        medium: { start: "echo", par: 8 },
+        high: { start: "idle", par: 10 }
+      }
     ];
+    const difficultyLabels = { low: "Low", medium: "Medium", high: "High" };
 
     const form = document.querySelector("#guess-form");
     const message = document.querySelector("#message");
@@ -486,19 +683,60 @@
     const solveTime = document.querySelector("#solve-time");
     const shareButton = document.querySelector("#share-button");
     const shareStatus = document.querySelector("#share-status");
+    const shareFallback = document.querySelector("#share-fallback");
     const sharePreview = document.querySelector("#share-preview");
-    const puzzle = puzzles[new Date().getDay()];
+    const undoButton = document.querySelector("#undo-button");
+    const contrastToggle = document.querySelector("#contrast-toggle");
+    const feedbackLegend = document.querySelector("#feedback-legend");
+    const dayLabel = document.querySelector("#day-label");
+    const difficultyButtons = [...document.querySelectorAll(".difficulty-button")];
+    const todayPuzzles = puzzles[new Date().getDay()];
     const goalWord = "laid";
+
+    function createTierState(tier) {
+      const start = todayPuzzles[tier].start;
+      return {
+        currentWord: start,
+        wordPath: [start],
+        moves: 0,
+        undos: 0,
+        pendingRepeatGuess: null,
+        likelihoodScore: 0,
+        elapsedSeconds: 0,
+        startedAt: performance.now(),
+        won: false
+      };
+    }
+
+    let currentDifficulty = "medium";
+    const tierStates = {
+      low: createTierState("low"),
+      medium: createTierState("medium"),
+      high: createTierState("high")
+    };
+    let puzzle = todayPuzzles[currentDifficulty];
     let currentWord = puzzle.start;
     let wordPath = [puzzle.start];
     let moves = 0;
+    let undos = 0;
     let pendingRepeatGuess = null;
     let fireworksTimer;
+    let celebrationCleanupTimer;
     let likelihoodScore = 0;
+    let elapsedSeconds = 0;
     let startedAt = performance.now();
 
-    document.querySelector("#day-label").innerHTML =
-      `${puzzle.day} <span aria-hidden="true">·</span> <strong>${puzzle.difficulty}</strong>`;
+    function syncPuzzleHeader() {
+      dayLabel.textContent = `${todayPuzzles.day} · Par ${puzzle.par}`;
+      difficultyButtons.forEach(button => {
+        const tier = button.dataset.difficulty;
+        const solved = tierStates[tier].won;
+        button.setAttribute("aria-pressed", String(tier === currentDifficulty));
+        button.textContent = `${difficultyLabels[tier]}${solved ? " ✓" : ""}`;
+      });
+    }
+
+    syncPuzzleHeader();
 
     function renderPath() {
       const rows = wordPath.map((word, wordIndex) => {
@@ -534,6 +772,8 @@
           input.className = "letter";
           input.setAttribute("aria-label", `Letter ${index + 1} of 4 for next word`);
           input.setAttribute("maxlength", "1");
+          input.setAttribute("inputmode", "text");
+          input.setAttribute("enterkeyhint", index < 3 ? "next" : "done");
           input.setAttribute("autocomplete", "off");
           input.setAttribute("autocapitalize", "off");
           input.setAttribute("spellcheck", "false");
@@ -626,16 +866,26 @@
         }
       }
 
+      if (copied) {
+        shareFallback.hidden = true;
+        shareFallback.value = "";
+      } else {
+        shareFallback.value = result;
+        shareFallback.hidden = false;
+        shareFallback.focus();
+        shareFallback.select();
+      }
+
       shareStatus.dataset.state = copied ? "success" : "error";
       shareStatus.textContent = copied
         ? "Copied your anonymous results."
-        : "Couldn't copy automatically. Please try copying again.";
+        : "Couldn't copy automatically. Select and copy your results below.";
     }
 
     function getShareText() {
       const grid = getShareRows().map(row => row.join(" ")).join("\n");
       return [
-        `LAID — ${moves} ${moves === 1 ? "try" : "tries"}`,
+        `LAID (${difficultyLabels[currentDifficulty]}) — ${moves} ${moves === 1 ? "try" : "tries"}`,
         `Completely unscientific likelihood of getting laid: ${likelihoodScore}% (just a joke, not a real prediction)`,
         "",
         grid,
@@ -645,9 +895,10 @@
     }
 
     function getShareRows() {
+      const highContrast = document.body.classList.contains("high-contrast");
       return wordPath.map(word => getGoalFeedback(word).map(feedbackClass => {
-        if (feedbackClass === "goal-correct") return "🟩";
-        if (feedbackClass === "goal-present") return "🟨";
+        if (feedbackClass === "goal-correct") return highContrast ? "🟧" : "🟪";
+        if (feedbackClass === "goal-present") return highContrast ? "🟦" : "🟨";
         return "⬜";
       }));
     }
@@ -662,8 +913,8 @@
           const tile = document.createElement("span");
           tile.className = "share-tile";
           tile.setAttribute("aria-hidden", "true");
-          if (color === "🟩") tile.classList.add("goal-correct");
-          if (color === "🟨") tile.classList.add("goal-present");
+          if (color === "🟪" || color === "🟧") tile.classList.add("goal-correct");
+          if (color === "🟨" || color === "🟦") tile.classList.add("goal-present");
           row.append(tile);
         });
 
@@ -676,7 +927,9 @@
     function showCelebration() {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      const colors = ["#355b42", "#e7a83e", "#d36a57", "#7d9dc3", "#9d75b5"];
+      window.clearTimeout(fireworksTimer);
+      window.clearTimeout(celebrationCleanupTimer);
+      const colors = ["#2e0838", "#7b2163", "#e7a83e", "#5b1a70", "#b8456a"];
       celebration.replaceChildren();
       celebration.hidden = false;
 
@@ -712,7 +965,30 @@
           celebration.append(burst);
         }
       }, 1100);
+
+      celebrationCleanupTimer = window.setTimeout(() => {
+        celebration.hidden = true;
+        celebration.replaceChildren();
+      }, 3600);
     }
+
+    function updateUndoState() {
+      undoButton.disabled = moves === 0 || currentWord === goalWord;
+    }
+
+    form.addEventListener("beforeinput", event => {
+      if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
+      if (event.inputType !== "insertText" || !event.data || !/^[a-z]$/i.test(event.data)) return;
+      const input = event.target;
+      if (!input.value) return;
+      event.preventDefault();
+      cancelRepeatConfirmation();
+      input.value = event.data.toLowerCase();
+      const inputs = [...path.querySelectorAll(".current-row .letter")];
+      const index = inputs.indexOf(input);
+      applyGoalFeedback(inputs, inputs.map(letterInput => letterInput.value).join(""));
+      if (index < inputs.length - 1) inputs[index + 1].focus();
+    });
 
     form.addEventListener("input", event => {
       if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".letter")) return;
@@ -730,7 +1006,17 @@
       const inputs = [...path.querySelectorAll(".current-row .letter")];
       const index = inputs.indexOf(event.target);
       if (event.key === "Backspace" && !event.target.value && index > 0) {
+        event.preventDefault();
+        cancelRepeatConfirmation();
+        inputs[index - 1].value = "";
+        applyGoalFeedback(inputs, inputs.map(letterInput => letterInput.value).join(""));
         inputs[index - 1].focus();
+      } else if (event.key === "ArrowLeft" && index > 0) {
+        event.preventDefault();
+        inputs[index - 1].focus();
+      } else if (event.key === "ArrowRight" && index < inputs.length - 1) {
+        event.preventDefault();
+        inputs[index + 1].focus();
       }
     });
 
@@ -784,15 +1070,20 @@
       moves += 1;
       stepCount.textContent = moves;
       renderPath();
+      updateUndoState();
 
       if (currentWord === goalWord) {
         submitButton.textContent = "You won!";
         submitButton.disabled = true;
         showMessage(`You reached LAID in ${moves} ${moves === 1 ? "step" : "steps"}!`, "success");
-        const elapsedSeconds = Math.floor((performance.now() - startedAt) / 1000);
+        elapsedSeconds = Math.floor((performance.now() - startedAt) / 1000);
         const detourPenalty = Math.max(0, moves - puzzle.par) * 10;
         const timePenalty = Math.floor(elapsedSeconds / 30) * 5;
-        likelihoodScore = Math.max(5, 95 - detourPenalty - timePenalty);
+        const undoPenalty = undos * 5;
+        likelihoodScore = Math.max(5, 95 - detourPenalty - timePenalty - undoPenalty);
+        tierStates[currentDifficulty].won = true;
+        tierStates[currentDifficulty].elapsedSeconds = elapsedSeconds;
+        syncPuzzleHeader();
         oddsFill.style.width = `${likelihoodScore}%`;
         oddsScore.textContent = `${likelihoodScore}%`;
         oddsMeter.setAttribute("aria-valuenow", likelihoodScore);
@@ -808,16 +1099,119 @@
 
     shareButton.addEventListener("click", copyResult);
 
+    undoButton.addEventListener("click", () => {
+      if (moves === 0 || currentWord === goalWord) return;
+      wordPath.pop();
+      currentWord = wordPath[wordPath.length - 1];
+      moves -= 1;
+      undos += 1;
+      stepCount.textContent = moves;
+      cancelRepeatConfirmation();
+      renderPath();
+      updateUndoState();
+      showMessage("Undid last move. That slightly lowers your odds.");
+      path.querySelector(".current-row .letter")?.focus();
+    });
+
+    contrastToggle.addEventListener("click", () => {
+      const enabled = document.body.classList.toggle("high-contrast");
+      contrastToggle.setAttribute("aria-pressed", String(enabled));
+      const correctLabel = feedbackLegend.querySelector(".legend-correct");
+      const presentLabel = feedbackLegend.querySelector(".legend-present");
+      if (correctLabel) correctLabel.textContent = enabled ? "Orange" : "Purple";
+      if (presentLabel) presentLabel.textContent = enabled ? "Blue" : "Gold";
+      if (!winCard.hidden) renderSharePreview();
+    });
+
+    function switchDifficulty(nextDifficulty) {
+      if (nextDifficulty === currentDifficulty) return;
+      tierStates[currentDifficulty] = {
+        currentWord,
+        wordPath: [...wordPath],
+        moves,
+        undos,
+        pendingRepeatGuess,
+        likelihoodScore,
+        elapsedSeconds,
+        startedAt,
+        won: currentWord === goalWord
+      };
+
+      currentDifficulty = nextDifficulty;
+      puzzle = todayPuzzles[currentDifficulty];
+      const state = tierStates[currentDifficulty];
+      currentWord = state.currentWord;
+      wordPath = [...state.wordPath];
+      moves = state.moves;
+      undos = state.undos;
+      pendingRepeatGuess = state.pendingRepeatGuess;
+      likelihoodScore = state.likelihoodScore;
+      elapsedSeconds = state.elapsedSeconds;
+      startedAt = state.startedAt;
+
+      stepCount.textContent = String(moves);
+      syncPuzzleHeader();
+      renderPath();
+      updateUndoState();
+      window.clearTimeout(fireworksTimer);
+      window.clearTimeout(celebrationCleanupTimer);
+      celebration.hidden = true;
+      celebration.replaceChildren();
+      shareStatus.textContent = "";
+      shareStatus.dataset.state = "";
+      shareFallback.hidden = true;
+      shareFallback.value = "";
+
+      if (state.won) {
+        submitButton.disabled = true;
+        submitButton.textContent = "You won!";
+        oddsFill.style.width = `${likelihoodScore}%`;
+        oddsScore.textContent = `${likelihoodScore}%`;
+        oddsMeter.setAttribute("aria-valuenow", likelihoodScore);
+        solveTime.textContent = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
+        renderSharePreview();
+        winCard.hidden = false;
+        showMessage(`You reached LAID in ${moves} ${moves === 1 ? "step" : "steps"}!`, "success");
+      } else {
+        submitButton.disabled = false;
+        submitButton.textContent = pendingRepeatGuess ? "Use repeated word" : "Make a move";
+        winCard.hidden = true;
+        oddsFill.style.width = "0";
+        oddsScore.textContent = "";
+        oddsMeter.setAttribute("aria-valuenow", "0");
+        solveTime.textContent = "";
+        sharePreview.replaceChildren();
+        showMessage(
+          pendingRepeatGuess ? "You've used this word already. Submit again to use it anyway." : "",
+          pendingRepeatGuess ? "warning" : ""
+        );
+        path.querySelector(".current-row .letter")?.focus();
+      }
+    }
+
+    difficultyButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        switchDifficulty(button.dataset.difficulty);
+      });
+    });
+
     document.querySelector("#restart-button").addEventListener("click", () => {
-      currentWord = puzzle.start;
-      wordPath = [puzzle.start];
+      tierStates[currentDifficulty] = createTierState(currentDifficulty);
+      const state = tierStates[currentDifficulty];
+      currentWord = state.currentWord;
+      wordPath = [...state.wordPath];
       moves = 0;
+      undos = 0;
       pendingRepeatGuess = null;
       likelihoodScore = 0;
-      startedAt = performance.now();
+      elapsedSeconds = 0;
+      startedAt = state.startedAt;
       stepCount.textContent = "0";
+      syncPuzzleHeader();
       renderPath();
+      updateUndoState();
       window.clearTimeout(fireworksTimer);
+      window.clearTimeout(celebrationCleanupTimer);
       celebration.hidden = true;
       celebration.replaceChildren();
       submitButton.disabled = false;
@@ -830,6 +1224,8 @@
       sharePreview.replaceChildren();
       shareStatus.textContent = "";
       shareStatus.dataset.state = "";
+      shareFallback.hidden = true;
+      shareFallback.value = "";
       showMessage("");
       path.querySelector(".current-row .letter").focus();
     });
